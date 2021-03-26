@@ -24,13 +24,6 @@
 		    <artifactId>wiki-java</artifactId>
 		    <version>0.31</version>
 		</dependency>
-
-
-		<dependency>
-		    <groupId>pfd</groupId>
-		    <artifactId>s3util</artifactId>
-		    <version>0.0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 
 	<repositories>

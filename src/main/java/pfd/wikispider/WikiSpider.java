@@ -1,5 +1,6 @@
 package pfd.wikispider;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -7,6 +8,8 @@ import java.io.PrintStream;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -31,15 +34,16 @@ public class WikiSpider {
 			System.err.println( "Command Line Error: " + e.getMessage() );
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("wikispider", options );
+			System.exit(1);
 		}
 
-		File seedFile = new File(cmd.getOptionValue("seedfile"));
+		File seedFile = new File(cl.getOptionValue("seedfile"));
 		if (seedFile.canRead() == false) {
 			System.err.println("Error: cannot read seedfile: " + seedFile.getAbsolutePath());
 			System.exit(1);
 		}
 
-		File outFile = new File(cmd.getOptionValue("outfile"));
+		File outFile = new File(cl.getOptionValue("outfile"));
 		if (outFile.canWrite() == false) {
 			System.err.println("Error: cannot write to output: " + outFile.getAbsolutePath());
 			System.exit(1);
@@ -47,7 +51,7 @@ public class WikiSpider {
 
 		int depth = 0;
 		try {
-			depth = Integer.parseInt(cmd.getOptionValue("depth"));
+			depth = Integer.parseInt(cl.getOptionValue("depth"));
 		} catch (NumberFormatException e) {
 			System.err.println("Error: depth argument must specify an integer");
 			System.exit(1);
@@ -56,32 +60,33 @@ public class WikiSpider {
 		List<String> seedPages = new ArrayList<>();
 		BufferedReader br = new BufferedReader(new FileReader(seedFile));
 		String line = null;
-		while ((line = br.readline) != null) {
+		while ((line = br.readLine()) != null) {
 			seedPages.add(line.trim());
 		}
 
-		PrintStream urls = new PrintStream(new FileOutputStream(outFile));
+		PrintStream pages = new PrintStream(new FileOutputStream(outFile));
 
 		Wiki wiki;
 		wiki = new Wiki("en.wikipedia.org");
 
 		Set<String> pagesFetched = new HashSet<>();
 		for (String pageName : seedPages) {
-			recurseLinks(wiki, urls, pagesFetched, pageName, depth);
+			recurseLinks(wiki, pages, pagesFetched, pageName, depth);
 		}
-		urls.close();
+		pages.close();
 	}
 
 	private static void recurseLinks(
 			Wiki wiki,
-			PrintStream urls,
+			PrintStream pages,
 			Set<String> pagesFetched,
 			String pageName,
 			int depth) throws Exception {
-		if (pagesFecthed.contains(pageName)) {
+		if (pagesFetched.contains(pageName)) {
 			return;
 		}
 		pagesFetched.add(pageName);
+		pages.println(pageName);
 
 		// For potential future use:
 		//   use wiki.getRenderedText(pageName) to get page text
@@ -95,7 +100,7 @@ public class WikiSpider {
 		for (String link : links) {
 			if (link.startsWith("Wikipedia")) continue;
 			if (link.startsWith("Help")) continue;
-			recurse(wiki, urls, pagesFetched, link, depth-1);
+			recurseLinks(wiki, pages, pagesFetched, link, depth-1);
 		}
 	}
 }
