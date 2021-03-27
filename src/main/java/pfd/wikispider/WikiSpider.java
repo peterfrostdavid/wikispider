@@ -91,7 +91,7 @@ public class WikiSpider {
 		// For potential future use:
 		//   use wiki.getRenderedText(pageName) to get page text
 
-		System.out.println(wiki.getPageInfo(pageName));
+		System.out.println(pageName);
 		if (depth == 0) {
 			return;
 		}
