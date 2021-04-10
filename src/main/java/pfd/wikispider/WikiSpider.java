@@ -26,7 +26,8 @@ public class WikiSpider {
 		Options options = new Options();
 		options.addRequiredOption("seedfile", "seed-file", true, "File containing seed page titles");
 		options.addRequiredOption("outfile", "outfile", true, "File to contain output URLs");
-		options.addRequiredOption("depth", "depth", true, "Number of hops to follow from seed pages");
+		options.addRequiredOption("cmd", "cmd", true, "Command to perform: spider or links");
+		options.addRequiredOption("depth", "depth", false, "Number of hops to follow from seed pages");
 		CommandLine cl = null;
 		try {
 			cl = parser.parse( options, args );
@@ -49,31 +50,57 @@ public class WikiSpider {
 			System.exit(1);
 		}
 
-		int depth = 0;
-		try {
-			depth = Integer.parseInt(cl.getOptionValue("depth"));
-		} catch (NumberFormatException e) {
-			System.err.println("Error: depth argument must specify an integer");
-			System.exit(1);
-		}
-
-		List<String> seedPages = new ArrayList<>();
-		BufferedReader br = new BufferedReader(new FileReader(seedFile));
-		String line = null;
-		while ((line = br.readLine()) != null) {
-			seedPages.add(line.trim());
-		}
-
-		PrintStream pages = new PrintStream(new FileOutputStream(outFile));
-
 		Wiki wiki;
 		wiki = new Wiki("en.wikipedia.org");
+
+		String cmd = cl.getOptionValue("cmd");
+		if (cmd.equals("spider")) {
+			if (cl.hasOption("depth") == false) {
+				System.err.println("Error: spider command requires -depth");
+				System.exit(1);
+			}
+
+			int depth = 0;
+			try {
+				depth = Integer.parseInt(cl.getOptionValue("depth"));
+			} catch (NumberFormatException e) {
+				System.err.println("Error: depth argument must specify an integer");
+				System.exit(1);
+			}
+
+			spider(wiki, seedFile, outFile, depth);
+		} else if (cmd.equals("links")) {
+			links(wiki, seedFile, outFile);
+		} else {
+			System.err.println("Error: " + cmd + " is not a valid command.");
+			System.exit(1);
+		}
+	}
+
+	private static void spider(Wiki wiki, File seedFile, File outFile, int depth) throws Exception {
+		List<String> seedPages = readSeeds(seedFile);
+		PrintStream pages = new PrintStream(new FileOutputStream(outFile));
 
 		Set<String> pagesFetched = new HashSet<>();
 		for (String pageName : seedPages) {
 			recurseLinks(wiki, pages, pagesFetched, pageName, depth);
 		}
 		pages.close();
+
+
+	}
+
+	private static void links(Wiki wiki, File seedFile, File outFile) throws Exception {
+	}
+
+	private static List<String> readSeeds(File seedFile) throws Exception {
+		List<String> seedPages = new ArrayList<>();
+		BufferedReader br = new BufferedReader(new FileReader(seedFile));
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			seedPages.add(line.trim());
+		}
+		return seedPages;
 	}
 
 	private static void recurseLinks(
