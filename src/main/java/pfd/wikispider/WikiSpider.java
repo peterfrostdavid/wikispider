@@ -25,9 +25,10 @@ public class WikiSpider {
 		CommandLineParser parser = new DefaultParser();
 		Options options = new Options();
 		options.addRequiredOption("seedfile", "seed-file", true, "File containing seed page titles");
-		options.addRequiredOption("outfile", "outfile", true, "File to contain output URLs");
-		options.addRequiredOption("cmd", "cmd", true, "Command to perform: spider or links");
-		options.addRequiredOption("depth", "depth", false, "Number of hops to follow from seed pages");
+		options.addOption("outfile", "outfile", true, "File to contain output URLs");
+		options.addOption("outdir", "outdir", true, "Directory to contain collected files");
+		options.addRequiredOption("cmd", "cmd", true, "Command to perform: spider, content, links");
+		options.addOption("depth", "depth", true, "Number of hops to follow from seed pages");
 		CommandLine cl = null;
 		try {
 			cl = parser.parse( options, args );
@@ -44,16 +45,23 @@ public class WikiSpider {
 			System.exit(1);
 		}
 
-		File outFile = new File(cl.getOptionValue("outfile"));
-		if (outFile.canWrite() == false) {
-			System.err.println("Error: cannot write to output: " + outFile.getAbsolutePath());
-			System.exit(1);
+		String cmd = cl.getOptionValue("cmd");
+
+		File outFile = null;
+		File outDir = null;
+
+		if (cmd.equals("spider") || cmd.equals("links")) {
+			outFile = new File(cl.getOptionValue("outfile"));
+		}
+
+		if (cmd.equals("collect")) {
+			outDir = new File(cl.getOptionValue("outdir"));
+			outDir.mkdirs();
 		}
 
 		Wiki wiki;
 		wiki = new Wiki("en.wikipedia.org");
 
-		String cmd = cl.getOptionValue("cmd");
 		if (cmd.equals("spider")) {
 			if (cl.hasOption("depth") == false) {
 				System.err.println("Error: spider command requires -depth");
@@ -71,6 +79,8 @@ public class WikiSpider {
 			spider(wiki, seedFile, outFile, depth);
 		} else if (cmd.equals("links")) {
 			links(wiki, seedFile, outFile);
+		} else if (cmd.equals("collect")) {
+			collect(wiki, seedFile, outDir);
 		} else {
 			System.err.println("Error: " + cmd + " is not a valid command.");
 			System.exit(1);
@@ -86,11 +96,20 @@ public class WikiSpider {
 			recurseLinks(wiki, pages, pagesFetched, pageName, depth);
 		}
 		pages.close();
-
-
 	}
 
 	private static void links(Wiki wiki, File seedFile, File outFile) throws Exception {
+	}
+
+	private static void collect(Wiki wiki, File seedFile, File outDir) throws Exception {
+		List<String> seedPages = readSeeds(seedFile);
+
+		for (String pageName : seedPages) {	
+			String content = wiki.getRenderedText(pageName);
+			PrintStream out = new PrintStream(new FileOutputStream(new File(outDir, pageName + ".txt")));
+			out.print(content);
+			out.close();
+		}
 	}
 
 	private static List<String> readSeeds(File seedFile) throws Exception {
