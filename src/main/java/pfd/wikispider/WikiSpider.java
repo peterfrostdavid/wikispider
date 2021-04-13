@@ -18,6 +18,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.HelpFormatter;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import org.wikipedia.Wiki;
 
 public class WikiSpider {
@@ -106,8 +109,10 @@ public class WikiSpider {
 
 		for (String pageName : seedPages) {	
 			String content = wiki.getRenderedText(pageName);
+			Document d = Jsoup.parse(content);
+			String justText = d.text();
 			PrintStream out = new PrintStream(new FileOutputStream(new File(outDir, pageName + ".txt")));
-			out.print(content);
+			out.print(justText);
 			out.close();
 		}
 	}
@@ -133,9 +138,6 @@ public class WikiSpider {
 		}
 		pagesFetched.add(pageName);
 		pages.println(pageName);
-
-		// For potential future use:
-		//   use wiki.getRenderedText(pageName) to get page text
 
 		System.out.println(pageName);
 		if (depth == 0) {
