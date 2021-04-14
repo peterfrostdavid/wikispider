@@ -108,10 +108,19 @@ public class WikiSpider {
 		List<String> seedPages = readSeeds(seedFile);
 
 		for (String pageName : seedPages) {	
+			String filename = pageName + ".txt";
+			filename = filename.replace(":","-COLON-"); // make filename safe for Windows
+			filename = filename.replace("/","-SLASH-"); // make filename safe for Windows
+			File f = new File(outDir, filename);
+			if (f.exists()) {
+				System.out.println("File " + f.getName() + " alredy collected. Skipping.");
+				continue;
+			}
+			System.out.println("Fetching to " + f.getName());
 			String content = wiki.getRenderedText(pageName);
 			Document d = Jsoup.parse(content);
 			String justText = d.text();
-			PrintStream out = new PrintStream(new FileOutputStream(new File(outDir, pageName + ".txt")));
+			PrintStream out = new PrintStream(new FileOutputStream(f));
 			out.print(justText);
 			out.close();
 		}
