@@ -111,6 +111,7 @@ public class WikiSpider {
 			String filename = pageName + ".txt";
 			filename = filename.replace(":","-COLON-"); // make filename safe for Windows
 			filename = filename.replace("/","-SLASH-"); // make filename safe for Windows
+			filename = filename.replace("?","-QM-"); // make filename safe for Windows
 			File f = new File(outDir, filename);
 			if (f.exists()) {
 				System.out.println("File " + f.getName() + " alredy collected. Skipping.");
