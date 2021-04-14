@@ -112,6 +112,7 @@ public class WikiSpider {
 			filename = filename.replace(":","-COLON-"); // make filename safe for Windows
 			filename = filename.replace("/","-SLASH-"); // make filename safe for Windows
 			filename = filename.replace("?","-QM-"); // make filename safe for Windows
+			filename = filename.replace("\"","-QQ-"); // make filename safe for Windows
 			File f = new File(outDir, filename);
 			if (f.exists()) {
 				System.out.println("File " + f.getName() + " alredy collected. Skipping.");
@@ -121,7 +122,7 @@ public class WikiSpider {
 			String content = wiki.getRenderedText(pageName);
 			Document d = Jsoup.parse(content);
 			String justText = d.text();
-			PrintStream out = new PrintStream(new FileOutputStream(f));
+			PrintStream out = new PrintStream(new FileOutputStream(f), false, "UTF-8");
 			out.print(justText);
 			out.close();
 		}
