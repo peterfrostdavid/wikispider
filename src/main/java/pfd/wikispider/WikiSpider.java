@@ -119,7 +119,13 @@ public class WikiSpider {
 				continue;
 			}
 			System.out.println("Fetching to " + f.getName());
-			String content = wiki.getRenderedText(pageName);
+			String content = null;
+			try {
+				content = wiki.getRenderedText(pageName);
+			} catch (Exception e) {
+				System.err.println("Could not fetch " + pageName + ": " + e.getMessage());
+				continue;
+			}
 			Document d = Jsoup.parse(content);
 			String justText = d.text();
 			PrintStream out = new PrintStream(new FileOutputStream(f), false, "UTF-8");
